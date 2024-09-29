@@ -17,11 +17,5 @@ namespace BLOCK_8
         {
             CommonFunctions.Form.Setup_Form_Right_2K(this);
         }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //1280-1400
-            //1294-1407
-        }
     }
 }
