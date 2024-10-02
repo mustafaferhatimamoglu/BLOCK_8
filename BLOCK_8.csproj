@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Io.Gate.GateApi" Version="4.71.0" />
+    <PackageReference Include="RestSharp" Version="112.0.0" />
     <PackageReference Include="ScottPlot.WinForms" Version="5.0.39" />
   </ItemGroup>
 

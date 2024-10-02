@@ -52,7 +52,10 @@ namespace BLOCK_8.Coin
                 switch (Interval_string)
                 {
                     case "1s": return 1;
+                    case "10s": return 10;
                     case "1m": return 60;
+                    case "5m": return 300;
+                    case "30m": return 1800;
                     //case "1d": return 84600;                    
                     case "1h": return 3600;
                     case "4h": return 4*3600;

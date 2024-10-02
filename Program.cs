@@ -12,7 +12,7 @@ namespace BLOCK_8
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             //Application.Run(new Form1());
-            Application.Run(new Form2());
+            Application.Run(new Form3());
         }
     }
 }

@@ -13,7 +13,7 @@ using System.Windows.Forms;
 
 namespace BLOCK_8
 {
-    public partial class Form2: Form
+    public partial class Form2 : Form
     {
         DataLogger logger = new DataLogger();
         DataLogger logger_USDT = new DataLogger();
@@ -36,7 +36,7 @@ namespace BLOCK_8
             this.Load += CommonFunctions.Form.This_Load;
 
 
-            Coin.Data coinData = f.CreateData("BLOCKASSET_USDT", "1h");
+            Coin.Data coinData = f.CreateData("BLOCKASSET_USDT", "10s");
 
             foreach (var item in coinData.Rows)
             {
@@ -120,13 +120,13 @@ namespace BLOCK_8
                 double sellPrice = item.OpenPrice * 1.015;
 
                 var buyCoinAmount = everyUSDT / buyPrice;
-                var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString());
+                var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString(), time2);
                 balance.USDT_locked += everyUSDT;
                 balance.USDT -= everyUSDT;
                 orders.Add(buyOrder);
 
                 var sellCoinAmount = everyUSDT / sellPrice;
-                var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString());
+                var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString(), time2);
                 balance.COIN_locked += double.Parse(sellOrder.Amount);
                 balance.COIN -= double.Parse(sellOrder.Amount);
                 orders.Add(sellOrder);
@@ -146,6 +146,7 @@ namespace BLOCK_8
                         orders_Filled.Add(orders[i]);
                         //orders.RemoveAt(i);
                         orders[i].Side = "fill-buy";
+                        orders[i].Date_Fill = time2;
                     }
                     else if (orders[i].Side == "sell" && Convert.ToDouble(orders[i].Price) < item.HighestPrice)
                     {
@@ -154,6 +155,7 @@ namespace BLOCK_8
                         orders_Filled.Add(orders[i]);
                         //orders.RemoveAt(i);
                         orders[i].Side = "fill-sell";
+                        orders[i].Date_Fill = time2;
                     }
                 }
                 if (balance.COIN_locked > 9000)
@@ -162,6 +164,15 @@ namespace BLOCK_8
                 }
             }
 
+            foreach (var item in orders)
+            {
+                if (item.Side == "fill-sell" || item.Side == "fill-buy")
+
+                    formsPlot1.Plot.Add.Line(
+                        item.Date_Start, Convert.ToDouble(item.Price),
+                        item.Date_Fill, Convert.ToDouble(item.Price)
+                        );
+            }
 
         }
 
