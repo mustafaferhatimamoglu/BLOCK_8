@@ -1,25 +1,42 @@
+ï»¿using log4net.Repository.Hierarchy;
 using ScottPlot;
 using ScottPlot.Plottables;
-using static log4net.Appender.ColoredConsoleAppender;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace BLOCK_8
 {
-    public partial class Form1 : Form
+    public partial class Form2 : Form
     {
-        private void Setups()
-        {
+        DataLogger logger = new DataLogger();
+        DataLogger logger_USDT = new DataLogger();
+        DataLogger logger_USDT_locked = new DataLogger();
+        DataLogger logger_COIN = new DataLogger();
+        DataLogger logger_COIN_locked = new DataLogger();
 
-        }
-        public Form1()
+        Coin.Balance balance = new Coin.Balance();
+
+        List<Coin.Order> orders = new List<Coin.Order>();
+        List<Coin.Order> orders_Filled = new List<Coin.Order>();
+
+        Gate.IO.Functions f = new Gate.IO.Functions();
+
+        List<OHLC> OHLCs = new List<OHLC>();
+        public Form2()
         {
             InitializeComponent();
             Setups();
-            this.Load += This_Load;
+            this.Load += CommonFunctions.Form.This_Load;
 
-            Setup_Graph();
 
-            //Coin.Data coinData = f.CreateData("BLOCKASSET_USDT", "1h");
-            Coin.Data coinData = f.CreateData("BLOCKASSET_USDT", "4h");
+            Coin.Data coinData = f.CreateData("BLOCKASSET_USDT", "30m");
 
             foreach (var item in coinData.Rows)
             {
@@ -33,6 +50,8 @@ namespace BLOCK_8
                 OHLCs.Add(a);
             }
             formsPlot1.Plot.Add.Candlestick(OHLCs);
+
+
 
 
             if (true)
@@ -61,9 +80,9 @@ namespace BLOCK_8
             logger_COIN = formsPlot1.Plot.Add.DataLogger(); logger_COIN.ManageAxisLimits = false; logger_COIN.Color = ScottPlot.Colors.Blue; logger_COIN.LineWidth = 2;
             logger_COIN_locked = formsPlot1.Plot.Add.DataLogger(); logger_COIN_locked.ManageAxisLimits = false; logger_COIN_locked.Color = ScottPlot.Colors.DarkBlue;
             formsPlot1.Plot.Axes.DateTimeTicksBottom();
-            formsPlot1.Plot.ShowLegend(Alignment.UpperLeft);
+            //formsPlot1.Plot.ShowLegend(Alignment.UpperLeft);
 
-            int jumpthrough = 500;// 500;
+            int jumpthrough = 800;// 500;
             foreach (var item in coinData.Rows)
             {
                 if (jumpthrough > 0)
@@ -78,6 +97,7 @@ namespace BLOCK_8
                         //orders.Add(_sellOrder);
                         balance.COIN -= 5000;
                         balance.USDT += item.OpenPrice * 5000;
+                        formsPlot1.Plot.Add.VerticalLine(CommonFunctions.Converter.UnixTimeStampToDateTime(item.TimeStamp).ToOADate());
                     }
                     continue;
                 }
@@ -94,26 +114,13 @@ namespace BLOCK_8
                 logger_USDT_locked.Add(time2, balance.USDT_locked);
                 logger_COIN.Add(time2, balance.COIN);
                 logger_COIN_locked.Add(time2, balance.COIN_locked);
-                // Yeni order ekleme
-                double buyPrice = item.OpenPrice * 0.99;
-                double sellPrice = item.OpenPrice * 1.01;
 
-                var buyCoinAmount = everyUSDT / buyPrice;
-                var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString());
-                balance.USDT_locked += everyUSDT;
-                balance.USDT -= everyUSDT;
-                orders.Add(buyOrder);
 
-                var sellCoinAmount = everyUSDT / sellPrice;
-                var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString());
-                balance.COIN_locked += double.Parse(sellOrder.Amount);
-                balance.COIN -= double.Parse(sellOrder.Amount);
-                orders.Add(sellOrder);
 
-                // Zamanýn akmasý
-                //System.Threading.Thread.Sleep(60000); // Her döngüde 1 dakika bekle
+                // ZamanÄ±n akmasÄ±
+                //System.Threading.Thread.Sleep(60000); // Her dÃ¶ngÃ¼de 1 dakika bekle
 
-                // Döngü sýrasýnda openPrice güncellenebilir
+                // DÃ¶ngÃ¼ sÄ±rasÄ±nda openPrice gÃ¼ncellenebilir
 
                 //Check Orders
                 for (int i = orders.Count - 1; i >= 0; i--)
@@ -123,50 +130,107 @@ namespace BLOCK_8
                         balance.USDT_locked -= everyUSDT;
                         balance.COIN += Convert.ToDouble(orders[i].Amount) * 0.997;
                         orders_Filled.Add(orders[i]);
-                        orders.RemoveAt(i);
+                        //orders.RemoveAt(i);
+                        orders[i].Side = "fill-buy";
+                        orders[i].Date_Fill = time2;
                     }
                     else if (orders[i].Side == "sell" && Convert.ToDouble(orders[i].Price) < item.HighestPrice)
                     {
                         balance.COIN_locked -= Convert.ToDouble(orders[i].Amount);
                         balance.USDT += Convert.ToDouble(orders[i].Price) * Convert.ToDouble(orders[i].Amount) * 0.997;
                         orders_Filled.Add(orders[i]);
-                        orders.RemoveAt(i);
+                        //orders.RemoveAt(i);
+                        orders[i].Side = "fill-sell";
+                        orders[i].Date_Fill = time2;
                     }
-                    //if (orders[i].Type == "filled")
-                    //{
-                    //    balance.UpdateBalance(orders[i]);
-                    //    orders.RemoveAt(i);
-                    //}
                 }
                 if (balance.COIN_locked > 9000)
                 {
 
                 }
+
+                //// Yeni order ekleme
+                //for (int i = orders.Count - 1; i >= 0; i--)
+                //{
+                //    if (orders.Count - i > 2)
+                //    {
+                //        break;
+                //    }
+                //    if (orders[i].Side == "fill-sell" || orders[i].Side == "fill-buy")
+                //    {
+
+                //        double buyPrice = item.OpenPrice * 0.985;
+                //        double sellPrice = item.OpenPrice * 1.015;
+
+                //        var buyCoinAmount = everyUSDT / buyPrice;
+                //        var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString(), time2);
+                //        balance.USDT_locked += everyUSDT;
+                //        balance.USDT -= everyUSDT;
+                //        orders.Add(buyOrder);
+
+                //        var sellCoinAmount = everyUSDT / sellPrice;
+                //        var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString(), time2);
+                //        balance.COIN_locked += double.Parse(sellOrder.Amount);
+                //        balance.COIN -= double.Parse(sellOrder.Amount);
+                //        orders.Add(sellOrder);
+
+                //        break;
+                //    }
+                //}
+                //if (orders.Count ==0)
+                {
+                    double buyPrice = item.OpenPrice * 0.985;
+                    double sellPrice = item.OpenPrice * 1.015;
+
+                    var buyCoinAmount = everyUSDT / buyPrice;
+                    var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString(), time2);
+                    balance.USDT_locked += everyUSDT;
+                    balance.USDT -= everyUSDT;
+                    orders.Add(buyOrder);
+
+                    var sellCoinAmount = everyUSDT / sellPrice;
+                    var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString(), time2);
+                    balance.COIN_locked += double.Parse(sellOrder.Amount);
+                    balance.COIN -= double.Parse(sellOrder.Amount);
+                    orders.Add(sellOrder);
+                }
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            foreach (var item in orders)
+            {
+                if (item.Side == "fill-sell" || item.Side == "fill-buy")
+
+                    formsPlot1.Plot.Add.Line(
+                        item.Date_Start, Convert.ToDouble(item.Price),
+                        item.Date_Fill, Convert.ToDouble(item.Price)
+                        );
+            }
+
         }
 
-        private void This_Load(object? sender, EventArgs e)
+        private void Setups()
         {
-            CommonFunctions.Form.Setup_Form_Right_2K(this);
+            Setup_Graph();
         }
 
-        Gate.IO.Functions f = new Gate.IO.Functions();
 
-        List<OHLC> OHLCs = new List<OHLC>();
-
-        DataLogger logger = new DataLogger();
-        DataLogger logger_USDT = new DataLogger();
-        DataLogger logger_USDT_locked = new DataLogger();
-        DataLogger logger_COIN = new DataLogger();
-        DataLogger logger_COIN_locked = new DataLogger();
-
-
-        //double balance_USDT = 600.0;
-        //double balance_Coin = 0.0;
-        Coin.Balance balance = new Coin.Balance();
-        List<Coin.Order> orders = new List<Coin.Order>();
-        List<Coin.Order> orders_Filled = new List<Coin.Order>();
-         
         private ScottPlot.WinForms.FormsPlot formsPlot1;
         void Setup_Graph()
         {
@@ -179,6 +243,9 @@ namespace BLOCK_8
             formsPlot1.Size = new Size(800, 450);
             formsPlot1.TabIndex = 0;
             Controls.Add(formsPlot1);
+
+            formsPlot1.Plot.Axes.DateTimeTicksBottom();
+            formsPlot1.Plot.ShowLegend(Alignment.UpperLeft);
         }
     }
 }
