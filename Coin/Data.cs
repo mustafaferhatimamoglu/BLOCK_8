@@ -14,14 +14,17 @@ namespace BLOCK_8.Coin
         public string Base { get; set; }
         public string Quote { get; set; }
         public string Fee { get; set; }
-        public string MinBaseAmount { get; set; }
-        public string MinQuoteAmount { get; set; }
-        public string MaxBaseAmount { get; set; }
-        public string MaxQuoteAmount { get; set; }
-        public int AmountPrecision { get; set; }
-        public int Precision { get; set; }
-        public long SellStart { get; set; }
-        public long BuyStart { get; set; }
+        public string min_base_amount { get; set; }
+        public string min_quote_amount { get; set; }
+        public string max_quote_amount { get; set; }
+        //public string MaxQuoteAmount { get; set; }
+        public int amount_precision { get; set; }
+        public int precision { get; set; }
+        public string trade_status { get; set; }
+        public long sell_start { get; set; }
+        public long buy_start { get; set; }
+
+
         public List<DataRow> Rows = new List<DataRow>();
 
 
@@ -30,18 +33,18 @@ namespace BLOCK_8.Coin
         {
             get
             {
-                if (BuyStart > SellStart)
-                    return SellStart;
-                return BuyStart;
+                if (buy_start > sell_start)
+                    return sell_start;
+                return buy_start;
             }
         }
         public long SecondStart
         {
             get
             {
-                if (BuyStart > SellStart)
-                    return BuyStart;
-                return SellStart;
+                if (buy_start > sell_start)
+                    return buy_start;
+                return sell_start;
             }
         }
         public string Interval_string { get; set; }
@@ -61,7 +64,7 @@ namespace BLOCK_8.Coin
                     case "4h": return 4*3600;
                     case "1d": return 84600;
                     default:
-                        MessageBox.Show("UNRECOGNIZED INTERVAL");
+                        //MessageBox.Show("UNRECOGNIZED INTERVAL");
                         return 0;
                         break;
                 }

@@ -19,8 +19,9 @@ namespace BLOCK_8
         {
             InitializeComponent();
 
+            Gate.IO.RestFunctions.GetInfoCurrency();
 
-            Gate.IO.RestFunctions.f1();
+            //Gate.IO.RestFunctions.f1();
 
 
             a1();
