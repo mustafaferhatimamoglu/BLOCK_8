@@ -149,35 +149,35 @@ namespace BLOCK_8
 
                 }
 
-                //// Yeni order ekleme
-                //for (int i = orders.Count - 1; i >= 0; i--)
-                //{
-                //    if (orders.Count - i > 2)
-                //    {
-                //        break;
-                //    }
-                //    if (orders[i].Side == "fill-sell" || orders[i].Side == "fill-buy")
-                //    {
+                // Yeni order ekleme
+                for (int i = orders.Count - 1; i >= 0; i--)
+                {
+                    if (orders.Count - i > 2)
+                    {
+                        break;
+                    }
+                    if (orders[i].Side == "fill-sell" || orders[i].Side == "fill-buy")
+                    {
 
-                //        double buyPrice = item.OpenPrice * 0.985;
-                //        double sellPrice = item.OpenPrice * 1.015;
+                        double buyPrice = item.OpenPrice * 0.985;
+                        double sellPrice = item.OpenPrice * 1.015;
 
-                //        var buyCoinAmount = everyUSDT / buyPrice;
-                //        var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString(), time2);
-                //        balance.USDT_locked += everyUSDT;
-                //        balance.USDT -= everyUSDT;
-                //        orders.Add(buyOrder);
+                        var buyCoinAmount = everyUSDT / buyPrice;
+                        var buyOrder = Coin.Order.CreateOrder("limit", "buy", buyPrice.ToString(), buyCoinAmount.ToString(), time2);
+                        balance.USDT_locked += everyUSDT;
+                        balance.USDT -= everyUSDT;
+                        orders.Add(buyOrder);
 
-                //        var sellCoinAmount = everyUSDT / sellPrice;
-                //        var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString(), time2);
-                //        balance.COIN_locked += double.Parse(sellOrder.Amount);
-                //        balance.COIN -= double.Parse(sellOrder.Amount);
-                //        orders.Add(sellOrder);
+                        var sellCoinAmount = everyUSDT / sellPrice;
+                        var sellOrder = Coin.Order.CreateOrder("limit", "sell", sellPrice.ToString(), sellCoinAmount.ToString(), time2);
+                        balance.COIN_locked += double.Parse(sellOrder.Amount);
+                        balance.COIN -= double.Parse(sellOrder.Amount);
+                        orders.Add(sellOrder);
 
-                //        break;
-                //    }
-                //}
-                //if (orders.Count ==0)
+                        break;
+                    }
+                }
+                if (orders.Count == 0)
                 {
                     double buyPrice = item.OpenPrice * 0.985;
                     double sellPrice = item.OpenPrice * 1.015;
@@ -221,6 +221,13 @@ namespace BLOCK_8
                         item.Date_Start, Convert.ToDouble(item.Price),
                         item.Date_Fill, Convert.ToDouble(item.Price)
                         );
+                else
+                {
+                    formsPlot1.Plot.Add.Line(
+                            item.Date_Start, Convert.ToDouble(item.Price),
+                            item.Date_Start + 3, Convert.ToDouble(item.Price)
+                            );
+                }
             }
 
         }
